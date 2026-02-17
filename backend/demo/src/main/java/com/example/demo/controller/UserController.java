@@ -2,11 +2,14 @@ package com.example.demo.controller;
 
 import com.example.demo.entity.User;
 import com.example.demo.repository.UserRepository;
+import com.example.demo.dto.ChangePasswordRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+
 import java.time.temporal.ChronoUnit;
+import java.util.Map;
+import java.util.HashMap;
 import java.util.Optional;
-import com.example.demo.dto.ChangePasswordRequest;
 
 @CrossOrigin(origins = "http://localhost:5173")
 @RestController
@@ -15,6 +18,14 @@ public class UserController {
 
     @Autowired
     private UserRepository userRepository;
+
+    // ✅ Question key → readable text mapping
+    private static final Map<String, String> QUESTION_MAP = Map.of(
+        "nickname", "What is your Nickname?",
+        "school", "What is your First School Name?",
+        "birthplace", "What is your Place of Birth?",
+        "mother", "What is your Mother’s Surname?"
+    );
 
     @PostMapping("/register")
     public String registerUser(@RequestBody User user) {
@@ -106,34 +117,37 @@ public class UserController {
         return "Your password is: " + dbUser.getPassword();
     }
 
+    // ✅ FIXED: always return readable questions
     @GetMapping("/security-questions/{userId}")
-    public Object getSecurityQuestions(@PathVariable String userId) {
+    public Map<String, String> getSecurityQuestions(@PathVariable String userId) {
 
         Optional<User> optionalUser = userRepository.findById(userId);
 
         if (optionalUser.isEmpty()) {
-            return "Invalid User ID";
+            return Map.of("error", "Invalid User ID");
         }
 
         User user = optionalUser.get();
 
-        return new Object() {
-            public String question1 = user.getQuestion1();
-            public String question2 = user.getQuestion2();
-        };
+        Map<String, String> response = new HashMap<>();
+        response.put(
+            "question1",
+            QUESTION_MAP.getOrDefault(user.getQuestion1(), user.getQuestion1())
+        );
+        response.put(
+            "question2",
+            QUESTION_MAP.getOrDefault(user.getQuestion2(), user.getQuestion2())
+        );
+
+        return response;
     }
 
     private boolean isValidPassword(String password) {
         if (password == null) return false;
-
         if (password.length() < 8 || password.length() > 12) return false;
-
         if (!password.matches(".*[A-Z].*")) return false;
-
         if (!password.matches(".*[@#$%^&+=!].*")) return false;
-
         if (!password.matches("[A-Za-z0-9@#$%^&+=!]+")) return false;
-
         return true;
     }
 }

@@ -8,31 +8,33 @@ export default function App() {
   const [page, setPage] = useState("login");
 
   return (
-    <div className="container">
-      <h1>Authentication System</h1>
+    <div className="auth-wrapper">
+      {/* LEFT SIDEBAR */}
+      <div className="sidebar">
+        <h3>Authentication System</h3>
 
-      {}
-      <div className="nav-bar">
-        <button className="nav-btn" onClick={() => setPage("register")}>
+        <button className="side-btn" onClick={() => setPage("register")}>
           Register
         </button>
-        <button className="nav-btn" onClick={() => setPage("login")}>
+        <button className="side-btn" onClick={() => setPage("login")}>
           Login
         </button>
-        <button className="nav-btn" onClick={() => setPage("change")}>
+        <button className="side-btn" onClick={() => setPage("change")}>
           Change Password
         </button>
-        <button className="nav-btn" onClick={() => setPage("forgot")}>
+        <button className="side-btn" onClick={() => setPage("forgot")}>
           Forgot Password
         </button>
       </div>
 
-      {}
-      <div className="content">
-        {page === "register" && <Register />}
-        {page === "login" && <Login setPage={setPage} />}
-        {page === "change" && <ChangePassword />}
-        {page === "forgot" && <ForgotPassword />}
+      {/* RIGHT CONTENT AREA */}
+      <div className="content-area">
+        <div className="content-card">
+          {page === "register" && <Register />}
+          {page === "login" && <Login setPage={setPage} />}
+          {page === "change" && <ChangePassword />}
+          {page === "forgot" && <ForgotPassword />}
+        </div>
       </div>
     </div>
   );

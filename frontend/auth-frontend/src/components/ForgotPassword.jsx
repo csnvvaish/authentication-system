@@ -1,5 +1,12 @@
 import { useState } from "react";
 
+const questionMap = {
+  nickname: "What is your Nickname?",
+  school: "What is your First School Name?",
+  birthplace: "What is your Place of Birth?",
+  mother: "What is your Mother’s Surname?"
+};
+
 export default function ForgotPassword() {
   const [userId, setUserId] = useState("");
   const [questions, setQuestions] = useState(null);
@@ -7,10 +14,27 @@ export default function ForgotPassword() {
   const [result, setResult] = useState("");
 
   const loadQuestions = async () => {
+    if (!userId.trim()) {
+      alert("Enter User ID");
+      return;
+    }
+
     const res = await fetch(
       `http://localhost:8080/api/security-questions/${userId}`
     );
+
     const data = await res.json();
+    console.log("SECURITY QUESTIONS RESPONSE:", data); // ✅ DEBUG (required)
+
+    // ✅ FIX: ensure valid question object only
+    if (!data || !data.question1 || !data.question2) {
+      alert("Security questions not found for this user");
+      setQuestions(null);
+      return;
+    }
+
+    setAnswers({ answer1: "", answer2: "" });
+    setResult("");
     setQuestions(data);
   };
 
@@ -20,68 +44,68 @@ export default function ForgotPassword() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ userId, ...answers })
     });
+
     const text = await res.text();
     setResult(text);
+    setAnswers({ answer1: "", answer2: "" });
   };
 
   return (
-    <div>
+    <div className="container">
       <h2>Forgot Password</h2>
 
-      <label>User ID:</label><br />
-      <input
-        type="text"
-        onChange={e => setUserId(e.target.value)}
-      />
-      <br /><br />
+      <div className="userid-row">
+        <label>User ID</label>
+        <input
+          type="text"
+          value={userId}
+          onChange={e => {
+            setUserId(e.target.value);
+            setQuestions(null);
+            setResult("");
+          }}
+        />
+      </div>
 
-      <button onClick={loadQuestions}>Load Questions</button>
-      <br /><br />
+      <div className="actions">
+        <button onClick={loadQuestions}>Load Questions</button>
+      </div>
 
       {questions && (
         <>
-          <label>Question 1:</label>
-          <p>{questions.question1}</p>
-
-          <label>Answer 1:</label><br />
+          {/* QUESTION 1 */}
+          <div style={{ fontWeight: "500", marginTop: "10px" }}>
+            {questionMap[questions.question1] || questions.question1}
+          </div>
           <input
             type="text"
+            placeholder="Enter Answer"
+            value={answers.answer1}
             onChange={e =>
               setAnswers({ ...answers, answer1: e.target.value })
             }
           />
-          <br /><br />
 
-          <label>Question 2:</label>
-          <p>{questions.question2}</p>
-
-          <label>Answer 2:</label><br />
+          {/* QUESTION 2 */}
+          <div style={{ fontWeight: "500", marginTop: "10px" }}>
+            {questionMap[questions.question2] || questions.question2}
+          </div>
           <input
             type="text"
+            placeholder="Enter Answer"
+            value={answers.answer2}
             onChange={e =>
               setAnswers({ ...answers, answer2: e.target.value })
             }
           />
-          <br /><br />
 
-          <button onClick={submit}>SUBMIT</button>
+          <div className="actions">
+            <button onClick={submit}>SUBMIT</button>
+          </div>
         </>
       )}
 
-      <br /><br />
-
-      {result && (
-        <>
-          {result.startsWith("Your password is") ? (
-            <>
-              <label>Your password is:</label><br />
-              <input type="text" value={result.replace("Your password is: ", "")} readOnly />
-            </>
-          ) : (
-            <p>{result}</p>
-          )}
-        </>
-      )}
+      {result && <p>{result}</p>}
     </div>
   );
 }
